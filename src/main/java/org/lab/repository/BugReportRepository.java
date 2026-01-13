@@ -31,16 +31,4 @@ public class BugReportRepository {
                 .filter(bugReport -> Objects.equals(bugReport.getProjectId(), projectId))
                 .collect(Collectors.toList());
     }
-
-    public List<BugReport> findAll() {
-        return bugReports.values().stream().collect(Collectors.toList());
-    }
-
-    public boolean existsById(Long id) {
-        return bugReports.containsKey(id);
-    }
-
-    public void deleteById(Long id) {
-        bugReports.remove(id);
-    }
 }

@@ -41,43 +41,8 @@ public class ProjectService {
                 .collect(Collectors.toSet());
     }
 
-    public List<Project> findByManager(User manager) {
-        return projectRepository.findByManager(manager);
-    }
-
-    public List<Project> findByTeamLeader(User teamLeader) {
-        return projectRepository.findByTeamLeader(teamLeader);
-    }
-
     public List<Project> findAll() {
         return projectRepository.findAll();
-    }
-
-    public Project addDeveloper(Long projectId, User developer) {
-        Project project = findById(projectId);
-        if (project == null) {
-            throw new IllegalArgumentException("Project with ID '" + projectId + "' does not exist");
-        }
-
-        project.getDevelopers().add(developer);
-        return projectRepository.save(project);
-    }
-
-    public Project addTester(Long projectId, User tester) {
-        Project project = findById(projectId);
-        if (project == null) {
-            throw new IllegalArgumentException("Project with ID '" + projectId + "' does not exist");
-        }
-
-        project.getTesters().add(tester);
-        return projectRepository.save(project);
-    }
-
-    public void deleteById(Long id) {
-        if (!projectRepository.existsById(id)) {
-            throw new IllegalArgumentException("Project with ID '" + id + "' does not exist");
-        }
-        projectRepository.deleteById(id);
     }
 
     public Project assignTeamLeader(User manager, Long projectId, User teamLeader) {

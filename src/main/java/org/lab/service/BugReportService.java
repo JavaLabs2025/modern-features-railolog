@@ -19,17 +19,6 @@ public class BugReportService {
     private final ProjectRepository projectRepository;
     private final UserRoleValidationService userRoleValidationService;
 
-    public BugReport createBugReport(Long projectId) {
-        if (projectId == null) {
-            throw new IllegalArgumentException("Project ID cannot be null");
-        }
-
-        BugReport bugReport = new BugReport();
-        bugReport.setProjectId(projectId);
-
-        return bugReportRepository.save(bugReport);
-    }
-
     public BugReport findById(Long id) {
         return bugReportRepository.findById(id).orElse(null);
     }
@@ -76,11 +65,7 @@ public class BugReportService {
     public BugReport testProject(User tester, Long projectId) {
         userRoleValidationService.validateUserHasRoles(tester, projectId, Role.QA);
 
-        BugReport bugReport = new BugReport();
-        bugReport.setProjectId(projectId);
-        bugReport.setStatus(BugReportStatus.NEW);
-
-        return bugReport;
+        return createBugReportForProject(tester, projectId);
     }
 
     public BugReport verifyBugFix(User tester, Long bugReportId, boolean isFixed) {
@@ -110,7 +95,7 @@ public class BugReportService {
             throw new IllegalArgumentException("Bug report with ID '" + bugReportId + "' does not exist");
         }
 
-        userRoleValidationService.validateUserHasRoles(tester, bugReport.getProjectId(), Role.QA);
+        userRoleValidationService.validateUserHasRoles(tester, bugReport.getProjectId(), Role.MANAGER);
 
         if (!BugReportStatus.TESTED.equals(bugReport.getStatus())) {
             throw new IllegalStateException("Bug report must be tested before closing. Current status: " + bugReport.getStatus());

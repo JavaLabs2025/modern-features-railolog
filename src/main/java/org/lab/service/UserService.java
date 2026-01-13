@@ -1,10 +1,6 @@
 package org.lab.service;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-import org.lab.model.Ticket;
 import org.lab.model.User;
 import org.lab.repository.ProjectRepository;
 import org.lab.repository.TicketRepository;
@@ -35,12 +31,6 @@ public class UserService {
         user.setPassword(password);
 
         return userRepository.save(user);
-    }
-
-    public Set<Ticket> findTasks(User user) {
-        return ticketRepository.findAll().stream()
-                .filter(ticket -> ticket.getAssignees().contains(user))
-                .collect(Collectors.toSet());
     }
 
     public User findById(Long id) {

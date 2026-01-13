@@ -19,46 +19,8 @@ public class TicketService {
     private final MilestoneService milestoneService;
     private final UserRoleValidationService userRoleValidationService;
 
-
-    public Ticket createTicket(Long milestoneId, TicketStatus status) {
-        if (milestoneId == null) {
-            throw new IllegalArgumentException("Milestone ID cannot be null");
-        }
-
-        if (status == null) {
-            throw new IllegalArgumentException("Status cannot be null");
-        }
-
-        Ticket ticket = new Ticket();
-        ticket.setMilestoneId(milestoneId);
-        ticket.setStatus(status);
-        ticket.setAssignees(new HashSet<>());
-
-        return ticketRepository.save(ticket);
-    }
-
     public Ticket findById(Long id) {
         return ticketRepository.findById(id).orElse(null);
-    }
-
-    public Ticket assignUser(Long ticketId, User user) {
-        Ticket ticket = findById(ticketId);
-        if (ticket == null) {
-            throw new IllegalArgumentException("Ticket with ID '" + ticketId + "' does not exist");
-        }
-
-        ticket.getAssignees().add(user);
-        return ticket;
-    }
-
-    public Ticket updateStatus(Long ticketId, TicketStatus status) {
-        Ticket ticket = findById(ticketId);
-        if (ticket == null) {
-            throw new IllegalArgumentException("Ticket with ID '" + ticketId + "' does not exist");
-        }
-
-        ticket.setStatus(status);
-        return ticket;
     }
 
     private Long getProjectIdFromMilestone(Long milestoneId) {
@@ -75,21 +37,13 @@ public class TicketService {
                         "exist in any project"));
     }
 
-    public Ticket createTicketForProject(User user, Long milestoneId, TicketStatus status) {
+    public Ticket createTicketForProject(User user, Long milestoneId) {
         Long projectId = getProjectIdFromMilestone(milestoneId);
         userRoleValidationService.validateUserHasRoles(user, projectId, Role.MANAGER, Role.TEAMLEAD);
 
-        if (milestoneId == null) {
-            throw new IllegalArgumentException("Milestone ID cannot be null");
-        }
-
-        if (status == null) {
-            throw new IllegalArgumentException("Status cannot be null");
-        }
-
         Ticket ticket = new Ticket();
         ticket.setMilestoneId(milestoneId);
-        ticket.setStatus(status);
+        ticket.setStatus(TicketStatus.NEW);
         ticket.setAssignees(new HashSet<>());
 
         Ticket savedTicket = ticketRepository.save(ticket);
@@ -122,14 +76,7 @@ public class TicketService {
     }
 
     public boolean checkTicketCompletion(User user, Long ticketId) {
-        if (ticketId == null) {
-            throw new IllegalArgumentException("Ticket ID cannot be null");
-        }
-
         Ticket ticket = findById(ticketId);
-        if (ticket == null) {
-            throw new IllegalArgumentException("Ticket with ID '" + ticketId + "' does not exist");
-        }
 
         Long projectId = getProjectIdFromMilestone(ticket.getMilestoneId());
         userRoleValidationService.validateUserHasRoles(user, projectId, Role.MANAGER, Role.TEAMLEAD);
@@ -139,10 +86,6 @@ public class TicketService {
 
     public Ticket executeTicket(User developer, Long ticketId) {
         Ticket ticket = findById(ticketId);
-        if (ticket == null) {
-            throw new IllegalArgumentException("Ticket with ID '" + ticketId + "' does not exist");
-        }
-
         Long projectId = getProjectIdFromMilestone(ticket.getMilestoneId());
         userRoleValidationService.validateUserHasRoles(developer, projectId, Role.DEVELOPER);
 

@@ -1,44 +1,39 @@
 package org.lab.service;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Objects;
 
 import lombok.RequiredArgsConstructor;
 import org.lab.model.Milestone;
 import org.lab.model.MilestoneStatus;
 import org.lab.model.Project;
 import org.lab.model.Role;
+import org.lab.model.TicketStatus;
 import org.lab.model.User;
 import org.lab.repository.MilestoneRepository;
+import org.lab.repository.TicketRepository;
 
 @RequiredArgsConstructor
 public class MilestoneService {
 
     private final MilestoneRepository milestoneRepository;
     private final ProjectService projectService;
+    private final TicketRepository ticketRepository;
     private final UserRoleValidationService userRoleValidationService;
 
-    public Milestone createMilestone(MilestoneStatus status, LocalDate startDate, LocalDate endDate) {
-        if (status == null) {
-            throw new IllegalArgumentException("Status cannot be null");
-        }
-
-        if (startDate == null) {
-            throw new IllegalArgumentException("Start date cannot be null");
-        }
-
-        if (endDate == null) {
-            throw new IllegalArgumentException("End date cannot be null");
-        }
+    public Milestone createMilestone(User manager, LocalDate startDate, LocalDate endDate, Project project) {
+        userRoleValidationService.validateUserHasRoles(manager, project.getId(), Role.MANAGER);
 
         if (startDate.isAfter(endDate)) {
             throw new IllegalArgumentException("Start date cannot be after end date");
         }
 
         Milestone milestone = new Milestone();
-        milestone.setStatus(status);
+        milestone.setStatus(MilestoneStatus.OPEN);
         milestone.setStartDate(startDate);
         milestone.setEndDate(endDate);
+
+        project.getMilestones().add(milestone);
 
         return milestoneRepository.save(milestone);
     }
@@ -47,61 +42,25 @@ public class MilestoneService {
         return milestoneRepository.findById(id).orElse(null);
     }
 
-    public List<Milestone> findByStatus(MilestoneStatus status) {
-        if (status == null) {
-            throw new IllegalArgumentException("Status cannot be null");
-        }
-        return milestoneRepository.findByStatus(status);
-    }
-
-    public List<Milestone> findAll() {
-        return milestoneRepository.findAll();
-    }
-
-    public void deleteById(Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException("ID cannot be null");
-        }
-        if (!milestoneRepository.existsById(id)) {
-            throw new IllegalArgumentException("Milestone with ID '" + id + "' does not exist");
-        }
-        milestoneRepository.deleteById(id);
-    }
-
-    public Milestone createMilestoneForProject(
-            User manager,
-            Long projectId,
-            MilestoneStatus status,
-            LocalDate startDate,
-            LocalDate endDate
-    ) {
-        userRoleValidationService.validateUserHasRoles(manager, projectId, Role.MANAGER);
-        if (startDate.isAfter(endDate)) {
-            throw new IllegalArgumentException("Start date cannot be after end date");
-        }
-
-        Milestone milestone = new Milestone();
-        milestone.setStatus(status);
-        milestone.setStartDate(startDate);
-        milestone.setEndDate(endDate);
-
-        Milestone savedMilestone = milestoneRepository.save(milestone);
-
-        Project project = projectService.findById(projectId);
-        project.getMilestones().add(savedMilestone);
-
-        return savedMilestone;
-    }
-
     public Milestone changeMilestoneStatus(User manager, Long projectId, Long milestoneId, MilestoneStatus newStatus) {
         userRoleValidationService.validateUserHasRoles(manager, projectId, Role.MANAGER);
 
         Milestone milestone = findById(milestoneId);
-        if (milestone == null) {
-            throw new IllegalArgumentException("Milestone with ID '" + milestoneId + "' does not exist");
+        if (newStatus == MilestoneStatus.CLOSED) {
+            validateTicketsClosed(milestone);
         }
 
         milestone.setStatus(newStatus);
         return milestone;
+    }
+
+    private void validateTicketsClosed(Milestone milestone) {
+        milestone.getTickets().stream()
+                .filter(ticket -> Objects.equals(ticket.getMilestoneId(), milestone.getId()))
+                .forEach(ticket -> {
+                    if (!ticket.getStatus().equals(TicketStatus.COMPLETED)) {
+                        throw new IllegalArgumentException("Ticket with ID '" + ticket.getId() + "' is not completed");
+                    }
+                });
     }
 }

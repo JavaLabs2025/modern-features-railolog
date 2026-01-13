@@ -1,5 +1,6 @@
 package org.lab.repository;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,7 +40,7 @@ public class ProjectRepository {
     }
 
     public List<Project> findAll() {
-        return projects.values().stream().collect(Collectors.toList());
+        return new ArrayList<>(projects.values());
     }
 
     public boolean existsById(Long id) {

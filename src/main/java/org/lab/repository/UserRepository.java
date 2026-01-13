@@ -23,12 +23,6 @@ public class UserRepository {
         return Optional.ofNullable(users.get(id));
     }
 
-    public Optional<User> findByLogin(String login) {
-        return users.values().stream()
-                .filter(user -> user.getLogin().equals(login))
-                .findFirst();
-    }
-
     public boolean existsByLogin(String login) {
         return users.values().stream()
                 .anyMatch(user -> user.getLogin().equals(login));

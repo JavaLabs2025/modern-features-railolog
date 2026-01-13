@@ -1,5 +1,6 @@
 package org.lab.repository;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -40,7 +41,7 @@ public class TicketRepository {
     }
 
     public List<Ticket> findAll() {
-        return tickets.values().stream().collect(Collectors.toList());
+        return new ArrayList<>(tickets.values());
     }
 
     public boolean existsById(Long id) {
