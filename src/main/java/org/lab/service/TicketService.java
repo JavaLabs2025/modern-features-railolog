@@ -3,9 +3,11 @@ package org.lab.service;
 import java.util.HashSet;
 
 import lombok.RequiredArgsConstructor;
+import org.lab.model.BugReport;
 import org.lab.model.Milestone;
 import org.lab.model.Project;
 import org.lab.model.Role;
+import org.lab.model.Task;
 import org.lab.model.Ticket;
 import org.lab.model.TicketStatus;
 import org.lab.model.User;
@@ -22,6 +24,15 @@ public class TicketService {
     public Ticket findById(Long id) {
         return ticketRepository.findById(id).orElse(null);
     }
+
+    public String getTaskDescription(Task task) {
+        return switch (task) {
+            case BugReport bug -> "Bug Report #" + bug.getId() + " - Status: " + bug.getStatus();
+            case Ticket ticket -> "Ticket #" + ticket.getId() + " - Status: " + ticket.getStatus() +
+                    " - Assignees: " + ticket.getAssignees().size();
+        };
+    }
+
 
     private Long getProjectIdFromMilestone(Long milestoneId) {
         Milestone milestone = milestoneService.findById(milestoneId);

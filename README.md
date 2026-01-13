@@ -5,13 +5,12 @@
 На основе индивидуального задания произвести разработку бизнес-логики бэкэнда entriprise-системы.
 
 В ходе реализации необходимо использовать возможности современных версий языка Java:
-* Pattern matching для switch
-* строковые шаблоны))))))))))))))
-* расширенные возможности стандартной библиотеки Java
-* sealed классы и record
-* программирование в функциональном стиле
-* preview как project Valhalla, structured concurrency...
-* и т.д.
+* Pattern matching для switch - TicketService.getTaskDescription()
+* sealed классы - Task, Ticket, BugReport
+* record - ManagementSystem
+* программирование в функциональном стиле - Stream API и лямбды
+* preview как structured concurrency - BugReportService.findBugReportsToFix()
+* compact source files
 
 # Обязательное условие:
 * Использование системы сборки Gradle

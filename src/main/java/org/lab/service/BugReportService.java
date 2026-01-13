@@ -2,6 +2,7 @@ package org.lab.service;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.StructuredTaskScope;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
@@ -24,12 +25,24 @@ public class BugReportService {
     }
 
     public Set<BugReport> findBugReportsToFix(User user) {
-        return projectRepository.findAll().stream()
-                .filter(project -> project.getDevelopers().contains(user))
-                .map(project -> bugReportRepository.findByProjectId(project.getId()))
-                .flatMap(List::stream)
-                .filter(bugReport -> BugReportStatus.NEW.equals(bugReport.getStatus()))
-                .collect(Collectors.toSet());
+        try (var scope = StructuredTaskScope.open()) {
+            List<StructuredTaskScope.Subtask<List<BugReport>>> tasks = projectRepository.findAll().stream()
+                    .filter(project -> project.getDevelopers().contains(user))
+                    .map(project -> scope.fork(() ->
+                            bugReportRepository.findByProjectId(project.getId())))
+                    .toList();
+
+            scope.join();
+
+            return tasks.stream()
+                    .map(StructuredTaskScope.Subtask::get)
+                    .flatMap(List::stream)
+                    .filter(bugReport -> BugReportStatus.NEW.equals(bugReport.getStatus()))
+                    .collect(Collectors.toSet());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Bug search interrupted", e);
+        }
     }
 
     public BugReport createBugReportForProject(User user, Long projectId) {
@@ -43,6 +56,7 @@ public class BugReportService {
         bugReport.setProjectId(projectId);
         bugReport.setStatus(BugReportStatus.NEW);
 
+        bugReportRepository.save(bugReport);
         return bugReport;
     }
 

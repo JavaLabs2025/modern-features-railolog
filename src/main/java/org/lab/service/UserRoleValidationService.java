@@ -22,7 +22,7 @@ public class UserRoleValidationService {
         }
     }
 
-    private Role getUserRole(User user, Project project) {
+    public Role getUserRole(User user, Project project) {
         if (project.getManager() != null && project.getManager().equals(user)) {
             return Role.MANAGER;
         }
