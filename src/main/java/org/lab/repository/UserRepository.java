@@ -1,17 +1,14 @@
 package org.lab.repository;
 
-import org.lab.model.User;
-import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-@Service
+import org.lab.model.User;
+
 public class UserRepository {
-    private final Map<Long, User> users = new HashMap<>();
+    private final Map<Long, User> users = new ConcurrentHashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1);
 
     public User save(User user) {
@@ -35,13 +32,5 @@ public class UserRepository {
     public boolean existsByLogin(String login) {
         return users.values().stream()
                 .anyMatch(user -> user.getLogin().equals(login));
-    }
-
-    public void deleteById(Long id) {
-        users.remove(id);
-    }
-
-    public Map<Long, User> findAll() {
-        return new HashMap<>(users);
     }
 }

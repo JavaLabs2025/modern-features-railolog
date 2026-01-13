@@ -16,8 +16,7 @@ java {
 
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-web:4.0.1")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1")
+    implementation("org.projectlombok:lombok:1.18.42")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
