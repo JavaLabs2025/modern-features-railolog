@@ -1,18 +1,22 @@
 package org.lab.service;
 
-import org.lab.model.Milestone;
-import org.lab.model.MilestoneStatus;
-import org.lab.repository.MilestoneRepository;
 import java.time.LocalDate;
 import java.util.List;
 
-public class MilestoneService {
-    
-    private final MilestoneRepository milestoneRepository;
+import lombok.RequiredArgsConstructor;
+import org.lab.model.Milestone;
+import org.lab.model.MilestoneStatus;
+import org.lab.model.Project;
+import org.lab.model.Role;
+import org.lab.model.User;
+import org.lab.repository.MilestoneRepository;
 
-    public MilestoneService(MilestoneRepository milestoneRepository) {
-        this.milestoneRepository = milestoneRepository;
-    }
+@RequiredArgsConstructor
+public class MilestoneService {
+
+    private final MilestoneRepository milestoneRepository;
+    private final ProjectService projectService;
+    private final UserRoleValidationService userRoleValidationService;
 
     public Milestone createMilestone(MilestoneStatus status, LocalDate startDate, LocalDate endDate) {
         if (status == null) {
@@ -62,5 +66,42 @@ public class MilestoneService {
             throw new IllegalArgumentException("Milestone with ID '" + id + "' does not exist");
         }
         milestoneRepository.deleteById(id);
+    }
+
+    public Milestone createMilestoneForProject(
+            User manager,
+            Long projectId,
+            MilestoneStatus status,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        userRoleValidationService.validateUserHasRoles(manager, projectId, Role.MANAGER);
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("Start date cannot be after end date");
+        }
+
+        Milestone milestone = new Milestone();
+        milestone.setStatus(status);
+        milestone.setStartDate(startDate);
+        milestone.setEndDate(endDate);
+
+        Milestone savedMilestone = milestoneRepository.save(milestone);
+
+        Project project = projectService.findById(projectId);
+        project.getMilestones().add(savedMilestone);
+
+        return savedMilestone;
+    }
+
+    public Milestone changeMilestoneStatus(User manager, Long projectId, Long milestoneId, MilestoneStatus newStatus) {
+        userRoleValidationService.validateUserHasRoles(manager, projectId, Role.MANAGER);
+
+        Milestone milestone = findById(milestoneId);
+        if (milestone == null) {
+            throw new IllegalArgumentException("Milestone with ID '" + milestoneId + "' does not exist");
+        }
+
+        milestone.setStatus(newStatus);
+        return milestone;
     }
 }

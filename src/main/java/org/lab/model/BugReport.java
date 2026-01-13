@@ -8,4 +8,5 @@ import lombok.Setter;
 public class BugReport {
     private Long id;
     private long projectId;
+    private BugReportStatus status;
 }
