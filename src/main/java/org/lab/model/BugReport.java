@@ -1,6 +1,11 @@
 package org.lab.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class BugReport {
-    private long id;
+    private Long id;
     private long projectId;
 }
